@@ -8,9 +8,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaElementVisitor
 import com.intellij.psi.PsiCodeBlock
 import com.intellij.psi.PsiElementVisitor
+import com.intellij.psi.PsiExpression
 import com.intellij.psi.PsiForStatement
 import com.intellij.psi.PsiIfStatement
 import com.intellij.psi.PsiKeyword
+import com.intellij.psi.PsiLiteralExpression
+import com.intellij.psi.PsiMethodCallExpression
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiStatement
 import com.intellij.psi.PsiSwitchStatement
@@ -54,6 +57,23 @@ class Inspector : AbstractBaseJavaLocalInspectionTool() {
                 }
                 if (statement.lastChild.firstChild !is PsiCodeBlock) {
                     holder.registerProblem(statement, "missing {")
+                }
+            }
+
+            override fun visitExpression(expression: PsiExpression) {
+                super.visitExpression(expression)
+
+                for (child in expression.children) {
+                    if (child is PsiLiteralExpression)
+                        holder.registerProblem(child, "avoid hardcoded")
+                }
+            }
+
+            override fun visitMethodCallExpression(expression: PsiMethodCallExpression) {
+                super.visitMethodCallExpression(expression)
+                for (expression in expression.argumentList.expressions){
+                    if (expression is PsiLiteralExpression)
+                        holder.registerProblem(expression, "avoid hardcoded")
                 }
             }
         }
